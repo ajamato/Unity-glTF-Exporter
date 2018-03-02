@@ -878,6 +878,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if (!mat.shader.name.Contains("Standard"))
 		{
+			Debug.Log("Material " + mat.shader + " is not fully supported");
 			isMaterialPBR = false;
 		}
 		else
