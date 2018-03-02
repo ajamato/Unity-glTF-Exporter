@@ -1144,16 +1144,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 		else
 			Debug.LogError("Texture '" + inputTexture + "' already exists");
 
-    Debug.Log("convertTexture: pathInGltfFile " + pathInGltfFile +
-		    "\n pathInProject " + pathInProject +
-				"\n exportDirectory " + exportDirectory +
-				"\n format " + format.ToString() + "\n" +
-				"\n exportDir: " + exportDir + 
-				"\n exportPath: " + exportPath + 
-				"\n pathInArchive: " + pathInArchive +
-				"\n outputFilename: " + outputFilename + 
-				"\n pathInGltfFile " + pathInGltfFile + 
-				"\n\n\n");
 		return pathInGltfFile;
 	}
 }
