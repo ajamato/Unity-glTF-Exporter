@@ -44,28 +44,31 @@ public class ExportToGLTF : EditorWindow
 
     void OnGUI()
     {
-      GUILayout.Label("Base Settings", EditorStyles.boldLabel);
-      if (GUILayout.Button("Select Output File", GUILayout.Width(250), GUILayout.Height(40))) {
+      path = EditorGUILayout.TextField("Output File", path);
+
+      GUILayout.BeginHorizontal("buttons");
+      if (GUILayout.Button("Select Output File", GUILayout.Width(150), GUILayout.Height(40))) {
         // Hack to deal with the fact that its implemented
         // in a Coroutine.
-        path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "gltf");
+        path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "zip");
       }
-      path = EditorGUILayout.TextField("Output File", path);
+
       EditorGUI.BeginDisabledGroup(path == String.Empty);
-      if (GUILayout.Button("Convert", GUILayout.Width(250), GUILayout.Height(40))) {
+      if (GUILayout.Button("Convert", GUILayout.Width(150), GUILayout.Height(40))) {
         exporter.ExportCoroutine(path, null, true, true, false, true);
       }
       EditorGUI.EndDisabledGroup();
+      GUILayout.EndHorizontal();
     }
 
     void OnDestroy()
-	{
-		if (exporterGo)
-		{
-			DestroyImmediate(exporterGo);
-			exporter = null;
-		}
-	}
+	  {
+		  if (exporterGo)
+		  {
+			  DestroyImmediate(exporterGo);
+			  exporter = null;
+		  }
+    }
 }
 
 #endif
