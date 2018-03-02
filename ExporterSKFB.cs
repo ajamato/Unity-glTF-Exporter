@@ -570,7 +570,7 @@ public class ExporterSKFB : EditorWindow {
 							System.IO.File.Delete(zipPath);
 						}
 
-            exporter.ExportCoroutine(exportPath, null, true, true, opt_exportAnimation, true);
+						exporter.ExportCoroutine(exportPath, null, true, true, opt_exportAnimation, true);
 
 						if (File.Exists(zipPath))
 						{
