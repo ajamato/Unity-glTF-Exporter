@@ -356,7 +356,9 @@ public class ExporterSKFB : EditorWindow {
 			return false;
 		}
 
+        // Ajamato upload button
 		status = "Upload " + nbSelectedObjects + " object" + (nbSelectedObjects != 1 ? "s" : "");
+
 		return true;
 	}
 
@@ -549,6 +551,7 @@ public class ExporterSKFB : EditorWindow {
 			{
 				Rect r = EditorGUILayout.BeginVertical();
 				EditorGUI.ProgressBar(r, progress(), "Upload progress");
+
 				GUILayout.Space(18);
 				EditorGUILayout.EndVertical();
 			}
@@ -570,8 +573,8 @@ public class ExporterSKFB : EditorWindow {
 							System.IO.File.Delete(zipPath);
 						}
 
-						exporter.ExportCoroutine(exportPath, null, true, true, opt_exportAnimation, true);
-
+            exporter.ExportCoroutine(exportPath, null, true, true, opt_exportAnimation, true);
+            Debug.Log("zip Path: " + zipPath);
 						if (File.Exists(zipPath))
 						{
 							publisher.setFilePath(zipPath);

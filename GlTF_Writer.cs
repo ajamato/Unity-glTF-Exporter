@@ -62,11 +62,16 @@ public class GlTF_Writer {
 	public static bool hasSpecularMaterials = false;
 	public static bool convertRightHanded = true;
 	public static string exporterVersion = "2.2.1";
-	public static Regex rgx = new Regex("[^a-zA-Z0-9 -_.]");
+	// Updated to also remove spaces.
+	public static Regex rgx = new Regex("[^a-zA-Z0-9-_]");
+	//public static Regex rgx = new Regex("[^a-zA-Z0-9 -_. ]");
 	
 	static public string cleanNonAlphanumeric(string s)
 	{
-		return rgx.Replace(s, "");
+		//return rgx.Replace(s, "");
+		string result = rgx.Replace(s, "_");
+		Debug.Log("cleanNonAlphanumeric: " + s + " -> " + result);
+		return result;
 	}
 	static public string GetNameFromObject(Object o, bool useId = false)
 	{
@@ -216,6 +221,7 @@ public class GlTF_Writer {
 	public Dictionary<string, bool> extraBool = new Dictionary<string, bool>();
 
 	public void OpenFiles (string filepath) {
+    Debug.Log("filePath " + filepath);
 		fs = File.Open(filepath, FileMode.Create);
 		exportedFiles.Add(filepath, "");  // Value is an empty string since we want the file at the root of the .zip file
 		if (binary)

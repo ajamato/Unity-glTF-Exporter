@@ -731,30 +731,39 @@ public class SceneToGlTFWiz : MonoBehaviour
 		string assetPath = "";
 		if(occlusion)
 		{
+			Debug.Log("texName0 " + texName);
 			texName = texName + GlTF_Texture.GetNameFromObject(occlusion);
+			Debug.Log("texName1 " + texName);
 			assetPath = AssetDatabase.GetAssetPath(occlusion);
 			width = occlusion.width;
 			height = occlusion.height;
 		}
 		else
 		{
+			Debug.Log("texName2 " + texName);
 			texName = texName + "_";
+			Debug.Log("texName3 " + texName);
 		}
 
 		if (metallicRoughness)
 		{
+			Debug.Log("texName4 " + texName);
 			texName = texName + GlTF_Texture.GetNameFromObject(metallicRoughness);
+			Debug.Log("texName5 " + texName);
 			assetPath = AssetDatabase.GetAssetPath(metallicRoughness);
 			width = metallicRoughness.width;
 			height = metallicRoughness.height;
 		}
 		else
 		{
+			Debug.Log("texName6 " + texName);
 			texName = texName + "_";
+			Debug.Log("texName7 " + texName);
 		}
 
 		if (!GlTF_Writer.textureNames.Contains(texName))
 		{
+			Debug.Log("texName8 " + texName);
 			// Create texture
 			GlTF_Texture texture = new GlTF_Texture();
 			texture.name = texName;
@@ -762,7 +771,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Export image
 			GlTF_Image img = new GlTF_Image();
 			img.name = texName;
-			//img.uri =
+			//img.uri = ;
 
 			// Let's consider that the three textures have the same resolution
 			Color[] outputColors = new Color[width * height];
@@ -787,9 +796,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 			if (!Directory.Exists(exportDir))
 				Directory.CreateDirectory(exportDir);
 
-			string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.jpg";
-			string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
-			File.WriteAllBytes(exportPath, newtex.EncodeToJPG(jpgQuality));
+            //string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.jpg";
+            string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.png";
+            string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
+            File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
+            //File.WriteAllBytes(exportPath, newtex.EncodeToJPG(jpgQuality));
 
 			if (!GlTF_Writer.exportedFiles.ContainsKey(exportPath))
 				GlTF_Writer.exportedFiles.Add(exportPath, pathInArchive);
@@ -799,6 +810,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			img.uri = pathInArchive + "/" + outputFilename;
 
 			texture.source = GlTF_Writer.imageNames.Count;
+			Debug.Log("Add image1 : " + img.name);
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
@@ -845,6 +857,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			img.uri = convertTexture(ref t, assetPath, savedPath, format);
 
 			texture.source = GlTF_Writer.imageNames.Count;
+			Debug.Log("Add image2 : " + img.name);
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
@@ -873,6 +886,21 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool isMetal = true;
 		bool hasPBRMap = false;
 
+        ////// DEBUG//////
+        Debug.Log("MATERIAL " + mat.name + " SHADER " + mat.shader.name);
+        Shader shader = mat.shader;
+        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); i++)
+        {
+            if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.TexEnv)
+            {
+                Texture texture = mat.GetTexture(ShaderUtil.GetPropertyName(shader, i));
+                Debug.Log(" TEX: " + ShaderUtil.GetPropertyName(shader, i));
+            }
+        }
+
+        Debug.Log("MATERIAL " + mat.name + " SHADER " + mat.shader.name);
+        /////////DEBUG//////
+
 		if (!mat.shader.name.Contains("Standard"))
 		{
 			Debug.Log("Material " + mat.shader + " is not fully supported");
@@ -881,7 +909,10 @@ public class SceneToGlTFWiz : MonoBehaviour
 		else
 		{
 			// Is metal workflow used
-			isMetal = mat.shader.name == "Standard";
+			//isMetal = mat.shader.name == "Standard";
+            isMetal = mat.shader.name == "Standard" ||
+                      mat.shader.name == "Standard (Roughness setup)";
+
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
@@ -917,13 +948,19 @@ public class SceneToGlTFWiz : MonoBehaviour
 			material.pbrValues.Add(colorValue);
 		}
 
+        Debug.Log("isMaterialPBR " + isMaterialPBR);
 		//Parse PBR textures
 		if (isMaterialPBR)
 		{
+            Debug.Log("isMetal " + isMetal);
 			if (isMetal)
 			{
+                Debug.Log("ajamato0 hasPBRMap " + hasPBRMap +
+                          " isMetal " + isMetal +
+                          " isMaterialPBR " + isMaterialPBR);
 				if (hasPBRMap) // No metallic factor if texture
 				{
+                    Debug.Log("ajamato metallicRoughnessTexture ");
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "metallicRoughnessTexture";
 					Texture2D metallicRoughnessTexture = (Texture2D)mat.GetTexture("_MetallicGlossMap");
@@ -947,8 +984,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 			}
 			else
 			{
-				if (hasPBRMap) // No metallic factor if texture
+                Debug.Log("ajamato1 hasPBRMap " + hasPBRMap +
+                          " isMetal " + isMetal +
+                          " isMaterialPBR " + isMaterialPBR);				if (hasPBRMap) // No metallic factor if texture
 				{
+                    Debug.Log("ajamato specularGlossinessTexture ");
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "specularGlossinessTexture";
 					int specGlossTextureIndex = processTexture((Texture2D)mat.GetTexture("_SpecGlossMap"), IMAGETYPE.RGBA);
@@ -1094,6 +1134,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 	// Flip all images on Y and
 	public string convertTexture(ref Texture2D inputTexture, string pathInProject, string exportDirectory, IMAGETYPE format)
 	{
+		// TODO(ajamato): remove chars/spaces from export dir
 		int height = inputTexture.height;
 		int width = inputTexture.width;
 		Color[] textureColors = new Color[inputTexture.height * inputTexture.width];
@@ -1119,21 +1160,36 @@ public class SceneToGlTFWiz : MonoBehaviour
 		newtex.Apply();
 
 		string pathInArchive = Path.GetDirectoryName(pathInProject);
+		pathInArchive = GlTF_Writer.cleanNonAlphanumeric(pathInArchive);
 		string exportDir = Path.Combine(exportDirectory, pathInArchive);
-
+    
 		if (!Directory.Exists(exportDir))
 			Directory.CreateDirectory(exportDir);
 
-		string outputFilename = Path.GetFileNameWithoutExtension(pathInProject) + (format == IMAGETYPE.RGBA ? ".png" : ".jpg");
+    // TODO use pathInProject.
+		//string outputFilename = Path.GetFileNameWithoutExtension(pathInProject) + (format == IMAGETYPE.RGBA ? ".png" : ".jpg");
+    string outputFilename = GlTF_Writer.cleanNonAlphanumeric(Path.GetFileNameWithoutExtension(pathInProject)) + ".png";
 		string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
 		string pathInGltfFile = pathInArchive + "/" + outputFilename;
-		File.WriteAllBytes(exportPath, (format == IMAGETYPE.RGBA ? newtex.EncodeToPNG() : newtex.EncodeToJPG( format== IMAGETYPE.NORMAL_MAP ? 95 : jpgQuality)));
+		//File.WriteAllBytes(exportPath, (format == IMAGETYPE.RGBA ? newtex.EncodeToPNG() : newtex.EncodeToJPG( format== IMAGETYPE.NORMAL_MAP ? 95 : jpgQuality)));
+    File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
+
 
 		if (!GlTF_Writer.exportedFiles.ContainsKey(exportPath))
 			GlTF_Writer.exportedFiles.Add(exportPath, pathInArchive);
 		else
 			Debug.LogError("Texture '" + inputTexture + "' already exists");
 
+    Debug.Log("convertTexture: pathInGltfFile " + pathInGltfFile +
+		    "\n pathInProject " + pathInProject +
+				"\n exportDirectory " + exportDirectory +
+				"\n format " + format.ToString() + "\n" +
+				"\n exportDir: " + exportDir + 
+				"\n exportPath: " + exportPath + 
+				"\n pathInArchive: " + pathInArchive +
+				"\n outputFilename: " + outputFilename + 
+				"\n pathInGltfFile " + pathInGltfFile + 
+				"\n\n\n");
 		return pathInGltfFile;
 	}
 }
