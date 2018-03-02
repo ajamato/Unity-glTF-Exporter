@@ -884,9 +884,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 		else
 		{
 			// Is metal workflow used
-			//isMetal = mat.shader.name == "Standard";
-            isMetal = mat.shader.name == "Standard" ||
-                      mat.shader.name == "Standard (Roughness setup)";
+    	isMetal = mat.shader.name == "Standard" ||
+    	mat.shader.name == "Standard (Roughness setup)";
 
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
