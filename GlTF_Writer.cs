@@ -63,13 +63,11 @@ public class GlTF_Writer {
 	public static bool convertRightHanded = true;
 	public static string exporterVersion = "2.2.1";
 	// Updated to also remove spaces.
-	public static Regex rgx = new Regex("[^a-zA-Z0-9-_]");
-	//public static Regex rgx = new Regex("[^a-zA-Z0-9 -_. ]");
+	public static Regex rgx = new Regex("[^a-zA-Z0-9 -_.]");	//public static Regex rgx = new Regex("[^a-zA-Z0-9 -_. ]");
 	
 	static public string cleanNonAlphanumeric(string s)
 	{
-		string result = rgx.Replace(s, "_");
-		return result;
+		return rgx.Replace(s, "");
 	}
 	static public string GetNameFromObject(Object o, bool useId = false)
 	{

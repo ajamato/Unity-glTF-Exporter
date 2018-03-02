@@ -787,9 +787,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 			if (!Directory.Exists(exportDir))
 				Directory.CreateDirectory(exportDir);
 
-            string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.png";
-            string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
-            File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
+			string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.png";
+			string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
+			File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
 
 			if (!GlTF_Writer.exportedFiles.ContainsKey(exportPath))
 				GlTF_Writer.exportedFiles.Add(exportPath, pathInArchive);
