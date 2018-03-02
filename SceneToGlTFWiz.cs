@@ -762,7 +762,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Export image
 			GlTF_Image img = new GlTF_Image();
 			img.name = texName;
-			//img.uri = ;
+			//img.uri =
 
 			// Let's consider that the three textures have the same resolution
 			Color[] outputColors = new Color[width * height];
@@ -787,11 +787,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 			if (!Directory.Exists(exportDir))
 				Directory.CreateDirectory(exportDir);
 
-            //string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.jpg";
             string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.png";
             string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
             File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
-            //File.WriteAllBytes(exportPath, newtex.EncodeToJPG(jpgQuality));
 
 			if (!GlTF_Writer.exportedFiles.ContainsKey(exportPath))
 				GlTF_Writer.exportedFiles.Add(exportPath, pathInArchive);
@@ -875,7 +873,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool isMetal = true;
 		bool hasPBRMap = false;
 
-
 		if (!mat.shader.name.Contains("Standard"))
 		{
 			Debug.Log("Material " + mat.shader + " is not fully supported");
@@ -884,9 +881,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 		else
 		{
 			// Is metal workflow used
-    	isMetal = mat.shader.name == "Standard" ||
-    	mat.shader.name == "Standard (Roughness setup)";
-
+			isMetal = mat.shader.name == "Standard" ||
+			mat.shader.name == "Standard (Roughness setup)";
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
@@ -952,6 +948,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			}
 			else
 			{
+				if (hasPBRMap) // No metallic factor if texture
 				{
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "specularGlossinessTexture";
@@ -1098,7 +1095,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 	// Flip all images on Y and
 	public string convertTexture(ref Texture2D inputTexture, string pathInProject, string exportDirectory, IMAGETYPE format)
 	{
-		// TODO(ajamato): remove chars/spaces from export dir
 		int height = inputTexture.height;
 		int width = inputTexture.width;
 		Color[] textureColors = new Color[inputTexture.height * inputTexture.width];
@@ -1126,18 +1122,14 @@ public class SceneToGlTFWiz : MonoBehaviour
 		string pathInArchive = Path.GetDirectoryName(pathInProject);
 		pathInArchive = GlTF_Writer.cleanNonAlphanumeric(pathInArchive);
 		string exportDir = Path.Combine(exportDirectory, pathInArchive);
-    
+
 		if (!Directory.Exists(exportDir))
 			Directory.CreateDirectory(exportDir);
 
-    // TODO use pathInProject.
-		//string outputFilename = Path.GetFileNameWithoutExtension(pathInProject) + (format == IMAGETYPE.RGBA ? ".png" : ".jpg");
-    string outputFilename = GlTF_Writer.cleanNonAlphanumeric(Path.GetFileNameWithoutExtension(pathInProject)) + ".png";
+		string outputFilename = GlTF_Writer.cleanNonAlphanumeric(Path.GetFileNameWithoutExtension(pathInProject)) + ".png";
 		string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
 		string pathInGltfFile = pathInArchive + "/" + outputFilename;
-		//File.WriteAllBytes(exportPath, (format == IMAGETYPE.RGBA ? newtex.EncodeToPNG() : newtex.EncodeToJPG( format== IMAGETYPE.NORMAL_MAP ? 95 : jpgQuality)));
-    File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
-
+		File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
 
 		if (!GlTF_Writer.exportedFiles.ContainsKey(exportPath))
 			GlTF_Writer.exportedFiles.Add(exportPath, pathInArchive);
