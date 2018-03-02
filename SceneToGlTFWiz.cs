@@ -731,39 +731,30 @@ public class SceneToGlTFWiz : MonoBehaviour
 		string assetPath = "";
 		if(occlusion)
 		{
-			Debug.Log("texName0 " + texName);
 			texName = texName + GlTF_Texture.GetNameFromObject(occlusion);
-			Debug.Log("texName1 " + texName);
 			assetPath = AssetDatabase.GetAssetPath(occlusion);
 			width = occlusion.width;
 			height = occlusion.height;
 		}
 		else
 		{
-			Debug.Log("texName2 " + texName);
 			texName = texName + "_";
-			Debug.Log("texName3 " + texName);
 		}
 
 		if (metallicRoughness)
 		{
-			Debug.Log("texName4 " + texName);
 			texName = texName + GlTF_Texture.GetNameFromObject(metallicRoughness);
-			Debug.Log("texName5 " + texName);
 			assetPath = AssetDatabase.GetAssetPath(metallicRoughness);
 			width = metallicRoughness.width;
 			height = metallicRoughness.height;
 		}
 		else
 		{
-			Debug.Log("texName6 " + texName);
 			texName = texName + "_";
-			Debug.Log("texName7 " + texName);
 		}
 
 		if (!GlTF_Writer.textureNames.Contains(texName))
 		{
-			Debug.Log("texName8 " + texName);
 			// Create texture
 			GlTF_Texture texture = new GlTF_Texture();
 			texture.name = texName;
@@ -810,7 +801,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 			img.uri = pathInArchive + "/" + outputFilename;
 
 			texture.source = GlTF_Writer.imageNames.Count;
-			Debug.Log("Add image1 : " + img.name);
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
@@ -857,7 +847,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 			img.uri = convertTexture(ref t, assetPath, savedPath, format);
 
 			texture.source = GlTF_Writer.imageNames.Count;
-			Debug.Log("Add image2 : " + img.name);
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
@@ -886,24 +875,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool isMetal = true;
 		bool hasPBRMap = false;
 
-        ////// DEBUG//////
-        Debug.Log("MATERIAL " + mat.name + " SHADER " + mat.shader.name);
-        Shader shader = mat.shader;
-        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); i++)
-        {
-            if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.TexEnv)
-            {
-                Texture texture = mat.GetTexture(ShaderUtil.GetPropertyName(shader, i));
-                Debug.Log(" TEX: " + ShaderUtil.GetPropertyName(shader, i));
-            }
-        }
-
-        Debug.Log("MATERIAL " + mat.name + " SHADER " + mat.shader.name);
-        /////////DEBUG//////
 
 		if (!mat.shader.name.Contains("Standard"))
 		{
-			Debug.Log("Material " + mat.shader + " is not fully supported");
 			isMaterialPBR = false;
 		}
 		else
@@ -948,19 +922,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 			material.pbrValues.Add(colorValue);
 		}
 
-        Debug.Log("isMaterialPBR " + isMaterialPBR);
 		//Parse PBR textures
 		if (isMaterialPBR)
 		{
-            Debug.Log("isMetal " + isMetal);
 			if (isMetal)
 			{
-                Debug.Log("ajamato0 hasPBRMap " + hasPBRMap +
-                          " isMetal " + isMetal +
-                          " isMaterialPBR " + isMaterialPBR);
 				if (hasPBRMap) // No metallic factor if texture
 				{
-                    Debug.Log("ajamato metallicRoughnessTexture ");
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "metallicRoughnessTexture";
 					Texture2D metallicRoughnessTexture = (Texture2D)mat.GetTexture("_MetallicGlossMap");
@@ -984,11 +952,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			}
 			else
 			{
-                Debug.Log("ajamato1 hasPBRMap " + hasPBRMap +
-                          " isMetal " + isMetal +
-                          " isMaterialPBR " + isMaterialPBR);				if (hasPBRMap) // No metallic factor if texture
 				{
-                    Debug.Log("ajamato specularGlossinessTexture ");
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "specularGlossinessTexture";
 					int specGlossTextureIndex = processTexture((Texture2D)mat.GetTexture("_SpecGlossMap"), IMAGETYPE.RGBA);

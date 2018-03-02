@@ -574,7 +574,6 @@ public class ExporterSKFB : EditorWindow {
 						}
 
             exporter.ExportCoroutine(exportPath, null, true, true, opt_exportAnimation, true);
-            Debug.Log("zip Path: " + zipPath);
 						if (File.Exists(zipPath))
 						{
 							publisher.setFilePath(zipPath);

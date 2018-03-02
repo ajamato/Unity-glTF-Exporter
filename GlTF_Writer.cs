@@ -68,9 +68,7 @@ public class GlTF_Writer {
 	
 	static public string cleanNonAlphanumeric(string s)
 	{
-		//return rgx.Replace(s, "");
 		string result = rgx.Replace(s, "_");
-		Debug.Log("cleanNonAlphanumeric: " + s + " -> " + result);
 		return result;
 	}
 	static public string GetNameFromObject(Object o, bool useId = false)
@@ -221,7 +219,6 @@ public class GlTF_Writer {
 	public Dictionary<string, bool> extraBool = new Dictionary<string, bool>();
 
 	public void OpenFiles (string filepath) {
-    Debug.Log("filePath " + filepath);
 		fs = File.Open(filepath, FileMode.Create);
 		exportedFiles.Add(filepath, "");  // Value is an empty string since we want the file at the root of the .zip file
 		if (binary)
