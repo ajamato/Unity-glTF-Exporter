@@ -9,7 +9,7 @@ public class ExportToGLTF : EditorWindow
 	SceneToGlTFWiz exporter;
 	string path = "";
 
-	[MenuItem("Tools/Export to GLTF")]
+	[MenuItem("Tools/Export Selected to GLTF")]
 	static void Export()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
@@ -34,10 +34,10 @@ public class ExportToGLTF : EditorWindow
 		if (GUILayout.Button("Select Output File", GUILayout.Width(150), GUILayout.Height(40))) {
 			// Hack to deal with the fact that its implemented
 			// in a Coroutine.
-			path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "zip");
+			path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "gltf");
 		}
 
-		EditorGUI.BeginDisabledGroup(path == String.Empty);
+		EditorGUI.BeginDisabledGroup(path == String.Empty || path.EndsWith(".zip"));
 		if (GUILayout.Button("Convert", GUILayout.Width(150), GUILayout.Height(40))) {
 			exporter.ExportCoroutine(path, null, true, true, false, true);
 		}

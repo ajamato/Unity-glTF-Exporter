@@ -548,9 +548,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			{
 				zip.AddFile(originFilePath, GlTF_Writer.exportedFiles[originFilePath]);
 			}
-			
 			zip.Save(savedPath + "/" + zipName);
-
 			// Remove all files
 			foreach (string pa in GlTF_Writer.exportedFiles.Keys)
 			{
