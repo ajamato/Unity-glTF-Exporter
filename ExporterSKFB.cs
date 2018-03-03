@@ -22,7 +22,9 @@ public enum ExporterState
 
 public class ExporterSKFB : EditorWindow {
 
-	[MenuItem("Tools/Publish to Sketchfab")]
+	//[MenuItem("Tools/Publish to Sketchfab")]
+	// Intentionally disabled the menu item so that the
+	// export functionality can be used as a library.
 	static void Init()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
