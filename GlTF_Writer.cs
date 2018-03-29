@@ -56,6 +56,8 @@ public class GlTF_Writer {
 
 	// Keys are original file path, values correspond to the directory in the output zip file
 	public static Dictionary<string, string> exportedFiles = new Dictionary<string, string>();
+	public static HashSet<string> createdDirectories = new HashSet<string>();
+
 	// Exporter specifics
 	public static bool bakeAnimation;
 	public static bool exportPBRMaterials;

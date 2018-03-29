@@ -129,6 +129,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		done = false;
 		bool debugRightHandedScale = false;
 		GlTF_Writer.exportedFiles.Clear();
+		GlTF_Writer.createdDirectories.Clear();
 		if (debugRightHandedScale)
 			GlTF_Writer.convertRightHanded = false;
 
@@ -556,6 +557,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 					System.IO.File.Delete(pa);
 			}
 
+			// Remove all created directories
+			foreach (string dir in GlTF_Writer.createdDirectories) {
+				// Recursively delete.
+				if (System.IO.Directory.Exists(dir))
+					System.IO.Directory.Delete(dir, true);
+			}
+
 			Debug.Log("Files have been cleaned");
 		}
 		done = true;
@@ -721,6 +729,21 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 	}
 
+    private void CreateAndRegisterSubDirs(
+		string baseExportDirectory, string pathInArchive) {
+		// Create every subdir and keep track of it
+		// So we can delete them at cleanup time.
+		string[] splitExportDir = pathInArchive.Split(Path.DirectorySeparatorChar);
+		string currentDir = baseExportDirectory;
+		foreach(string path in splitExportDir) {
+			currentDir = Path.Combine(currentDir, path);
+			if (!Directory.Exists(currentDir)) {
+				Directory.CreateDirectory(currentDir);
+				GlTF_Writer.createdDirectories.Add(currentDir);
+			}
+		}
+	}
+
 	private int createOcclusionMetallicRoughnessTexture(ref Texture2D occlusion, ref Texture2D metallicRoughness)
 	{
 		string texName = "";
@@ -782,8 +805,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			string pathInArchive = Path.GetDirectoryName(assetPath);
 			string exportDir = Path.Combine(savedPath, pathInArchive);
 
-			if (!Directory.Exists(exportDir))
-				Directory.CreateDirectory(exportDir);
+			CreateAndRegisterSubDirs(savedPath, pathInArchive);
 
 			string outputFilename = Path.GetFileNameWithoutExtension(assetPath) + "_converted_metalRoughness.png";
 			string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
@@ -870,25 +892,28 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool isMaterialPBR = true;
 		bool isMetal = true;
 		bool hasPBRMap = false;
+		bool isMaterialRoughness = false;  // true if roughness, false if smoothness.
 
-		if (!mat.shader.name.Contains("Standard"))
+		if (!(mat.shader.name == "Standard" ||
+			mat.shader.name == "Standard (Roughness setup)"))
 		{
-			Debug.Log("Material " + mat.shader + " is not fully supported");
+			Debug.LogError("Material " + mat.shader + " is not fully supported");
 			isMaterialPBR = false;
 		}
 		else
 		{
 			// Is metal workflow used
 			isMetal = mat.shader.name == "Standard" ||
-			mat.shader.name == "Standard (Roughness setup)";
+				mat.shader.name == "Standard (Roughness setup)";
+			if (mat.shader.name == "Standard (Roughness setup)") { // TODO set roughness
+				isMaterialRoughness = true;
+			}
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
 			// Is smoothness defined by diffuse texture or PBR texture' alpha?
 			if (mat.GetFloat("_SmoothnessTextureChannel") != 0)
 				Debug.Log("Smoothness uses diffuse's alpha channel. Unsupported for now");
-
-			hasPBRMap = (!isMetal && mat.GetTexture("_SpecGlossMap") != null || isMetal && mat.GetTexture("_MetallicGlossMap") != null);
 		}
 
 		//Check transparency
@@ -941,7 +966,15 @@ public class SceneToGlTFWiz : MonoBehaviour
 				//Roughness factor
 				var roughnessFactor = new GlTF_Material.FloatValue();
 				roughnessFactor.name = "roughnessFactor";
-				roughnessFactor.value = hasPBRMap ? 1.0f : 1 - mat.GetFloat("_Glossiness"); // gloss scale is not supported for now(property _GlossMapScale)
+				// This block properly inverts or uses _Glossiness as is based on if it
+				// refers to a roughness or smoothness value.
+				if (hasPBRMap) {
+					roughnessFactor.value = 1.0f;
+				} else {
+					roughnessFactor.value = (isMaterialRoughness ?
+						mat.GetFloat("_Glossiness") : 1 - mat.GetFloat("_Glossiness"));
+				}
+
 				material.pbrValues.Add(roughnessFactor);
 			}
 			else
@@ -1121,8 +1154,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		pathInArchive = GlTF_Writer.cleanNonAlphanumeric(pathInArchive);
 		string exportDir = Path.Combine(exportDirectory, pathInArchive);
 
-		if (!Directory.Exists(exportDir))
-			Directory.CreateDirectory(exportDir);
+		CreateAndRegisterSubDirs(exportDirectory, pathInArchive);
 
 		string outputFilename = GlTF_Writer.cleanNonAlphanumeric(Path.GetFileNameWithoutExtension(pathInProject)) + ".png";
 		string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
