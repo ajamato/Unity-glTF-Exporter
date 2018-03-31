@@ -12,13 +12,9 @@ public class ExportToGLTF : EditorWindow
 	[MenuItem("Tools/Export Selected to GLTF")]
 	static void Export()
 	{
-#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
 		ExportToGLTF window = (ExportToGLTF)EditorWindow.GetWindow(typeof(ExportToGLTF));
 		window.titleContent.text = "Export To GLTF";
 		window.Show();
-#else // and error dialog if not standalone
-		EditorUtility.DisplayDialog("Error", "Your build target must be set to standalone", "Okay");
-#endif
 	}
 
 	void Awake() {
