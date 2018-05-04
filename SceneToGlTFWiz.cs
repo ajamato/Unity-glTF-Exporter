@@ -33,6 +33,9 @@ public enum IMAGETYPE
 
 public class SceneToGlTFWiz : MonoBehaviour
 {
+	private const int SMOOTHNESS_SOURCE_METALIC_ALPHA = 0;
+	private const int SMOOTHNESS_SOURCE_ALBEDO_ALPHA = 1;
+
 	public int jpgQuality = 85;
 
 	public GlTF_Writer writer;
@@ -679,7 +682,12 @@ public class SceneToGlTFWiz : MonoBehaviour
 	}
 
 	private void addTexturePixels(ref Texture2D texture, ref Color[] colors, IMAGETYPE outputChannel, IMAGETYPE inputChannel = IMAGETYPE.R)
+
+
 	{
+        // TODO if we have a roughness texture then make the roughness factor 1.
+        // TOOD handle the standard shader, where both are supported.
+
 		int height = texture.height;
 		int width = texture.width;
 		Color[] inputColors = new Color[texture.width * texture.height];
@@ -692,37 +700,78 @@ public class SceneToGlTFWiz : MonoBehaviour
 			return;
 		}
 
-		if(inputChannel != IMAGETYPE.R && inputChannel != IMAGETYPE.A)
+        if(inputChannel != IMAGETYPE.R && inputChannel != IMAGETYPE.A &&
+           inputChannel != IMAGETYPE.GRAYSCALE)
 		{
-			Debug.Log("Incorrect input channel (only 'R' and 'A' supported)");
+            Debug.LogWarning("Incorrect input channel (only 'R' and 'A' or GRAYSCALE supported)");
 		}
+
+        if (outputChannel == IMAGETYPE.R)
+        {
+            Debug.Log("IMAGETYPE.R");
+        }
+        else if (outputChannel == IMAGETYPE.G)
+        {
+            Debug.Log("IMAGETYPE.G");
+        }
+        else if (outputChannel == IMAGETYPE.B)
+        {
+            Debug.Log("IMAGETYPE.B");
+        }
+        else if (outputChannel == IMAGETYPE.G_INVERT)
+        {
+            Debug.Log("IMAGETYPE.G_INVERT");
+        }
+
 
 		for (int i = 0; i < height; ++i)
 		{
-			for (int j = 0; j < width; ++j)
-			{
-				int index = i * width + j;
-				int newIndex = (height - i - 1) * width + j;
-				Color c = outputChannel == IMAGETYPE.RGB ? inputColors[newIndex] : colors[index];
-				float inputValue = inputChannel == IMAGETYPE.R ? inputColors[newIndex].r : inputColors[newIndex].a;
+            for (int j = 0; j < width; ++j)
+            {
+                int index = i * width + j;
+                int newIndex = (height - i - 1) * width + j;
+                Color c = outputChannel == IMAGETYPE.RGB ? inputColors[newIndex] : colors[index];
+                float inputValue = 0;
+                if (inputChannel == IMAGETYPE.R)
+                {
+                    inputValue = inputColors[newIndex].r;
+                }
+                else if (inputChannel == IMAGETYPE.A)
+                {
+                    inputValue = inputColors[newIndex].a;
+                }
+                else if (inputChannel == IMAGETYPE.GRAYSCALE)
+                {
+                    inputValue = inputColors[newIndex].grayscale;
+                }
 
-				if(outputChannel == IMAGETYPE.R)
-				{
-					c.r = inputValue;
-				}
-				else if(outputChannel == IMAGETYPE.G)
-				{
-					c.g = inputValue;
-				}
-				else if(outputChannel == IMAGETYPE.B)
-				{
-					c.b = inputValue;
-				}
-				else if(outputChannel == IMAGETYPE.G_INVERT)
-				{
-					c.g = 1.0f - inputValue;
-				}
+                if (outputChannel == IMAGETYPE.R)
+                {
+                    c.r = inputValue;
+                }
+                else if (outputChannel == IMAGETYPE.G)
+                {
+                    c.g = inputValue;
+                }
+                else if (outputChannel == IMAGETYPE.B)
+                {
+                    c.b = inputValue;
+                }
+                else if (outputChannel == IMAGETYPE.G_INVERT)
+                {
+                    c.g = 1.0f - inputValue;
+                }
 
+
+
+                if (c.g < 1.0f && c.g > 0.0f)
+                {
+                    Debug.Log("c.g " + c.g + " c.a " + c.a);
+                }
+
+                if (c.g < 1.0f && c.g > 0.0f) {
+                    Debug.Log("c.g " + c.g + " c.a " + c.a);
+                }
 				colors[index] = c;
 			}
 		}
@@ -744,36 +793,73 @@ public class SceneToGlTFWiz : MonoBehaviour
 		}
 	}
 
-	private int createOcclusionMetallicRoughnessTexture(ref Texture2D occlusion, ref Texture2D metallicRoughness)
-	{
+	private int createOcclusionMetallicRoughnessTexture(
+		bool isMaterialRoughness, ref Texture2D occlusion, ref Texture2D metallic, ref Texture2D roughnessSmoothness) {
+		//Debug.Log("ajamato createOcclusionMetallicRoughnessTexture");
 		string texName = "";
 		int width = -1;
 		int height = -1;
 		string assetPath = "";
+
+      /*
+		if (occlusion.width != metallic.width || metallic.width != roughnessSmoothness.width ||
+			occlusion.height != metallic.height || metallic.height != roughnessSmoothness.height) {
+			DisplayError("Texture dimensions do not match. This is not properly supported." +
+			    "\nocclusion: " + occlusion.width + "x" + occlusion.height +
+				"\nmetallic: " + metallic.width + "x" + metallic.height +
+				"\nroughnessSmoothness: " + roughnessSmoothness.width + "x" + roughnessSmoothness.height);
+		}
+		*/
+
+		// TODO optomize later
+		// If they are all the same dimension sizes then pack
+		// them into one texture. Otherwise create separate textures.
+
+		//Texture2D forNaming = null
 		if(occlusion)
 		{
-			texName = texName + GlTF_Texture.GetNameFromObject(occlusion);
+			//Debug.Log("ajamato createOcclusionMetallicRoughnessTexture has occlusion");
+			texName = texName + GlTF_Texture.GetNameFromObject(occlusion) + "METALIC";
 			assetPath = AssetDatabase.GetAssetPath(occlusion);
 			width = occlusion.width;
 			height = occlusion.height;
+			//forNaming = occlusion;
 		}
 		else
 		{
 			texName = texName + "_";
 		}
 
-		if (metallicRoughness)
+		if (metallic)
 		{
-			texName = texName + GlTF_Texture.GetNameFromObject(metallicRoughness);
-			assetPath = AssetDatabase.GetAssetPath(metallicRoughness);
-			width = metallicRoughness.width;
-			height = metallicRoughness.height;
+			//Debug.Log("ajamato createOcclusionMetallicRoughnessTexture has metallicRoughness");
+			texName = texName + GlTF_Texture.GetNameFromObject(metallic);
+			assetPath = AssetDatabase.GetAssetPath(metallic);
+			width = metallic.width;
+			height = metallic.height;
+			//forNaming = metallic;
+
 		}
 		else
 		{
 			texName = texName + "_";
 		}
 
+		if (roughnessSmoothness)
+		{
+			texName = texName + GlTF_Texture.GetNameFromObject(roughnessSmoothness);
+			assetPath = AssetDatabase.GetAssetPath(roughnessSmoothness);
+			width = roughnessSmoothness.width;
+			height = roughnessSmoothness.height;
+			//forNaming = roughnessSmoothness;
+
+		}
+		else
+		{
+			texName = texName + "_";
+		}
+
+		Debug.Log("ajamato texName " + texName);
 		if (!GlTF_Writer.textureNames.Contains(texName))
 		{
 			// Create texture
@@ -790,12 +876,32 @@ public class SceneToGlTFWiz : MonoBehaviour
 			for (int i = 0; i < outputColors.Length; ++i)
 				outputColors[i] = new Color(1.0f, 1.0f, 1.0f);
 
-			if (occlusion)
-				addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
-			if (metallicRoughness)
-			{
-				addTexturePixels(ref metallicRoughness, ref outputColors, IMAGETYPE.B);
-				addTexturePixels(ref metallicRoughness, ref outputColors, IMAGETYPE.G_INVERT, IMAGETYPE.A);
+            // Add occlusion to R channel
+            if (occlusion)
+            {
+                addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
+            }
+			// TODO I think we might need to invert the roughness sometimes???
+			// Add Metalicness to B channel
+			// Add Roughness to G channel, after inverting the values
+			if (metallic) {
+				addTexturePixels(ref metallic, ref outputColors, IMAGETYPE.B);
+			}
+
+			if (roughnessSmoothness) {
+                // If Standard (Roughness Setup) then it comes from grayscale.
+                // If Standard then it comes from Albedo or Metalic Alpha channels.
+                IMAGETYPE inputChannel = isMaterialRoughness ? IMAGETYPE.GRAYSCALE : IMAGETYPE.A;
+                // Output to roughness, so invert if the material stored smoothness.
+				IMAGETYPE outputChannel = isMaterialRoughness ? IMAGETYPE.G : IMAGETYPE.G_INVERT;
+                // TODO what color here?
+                Debug.Log("roughness inputChannel channel " + inputChannel);
+
+                Debug.Log("roughness outputChannel channel " + outputChannel );
+                Debug.Log("ajamato createOcclusionMetallicRoughnessTexture has roughnessSmoothness");
+                Debug.Log("ROUGHNESS_SMOOTHNESS " + roughnessSmoothness.name);
+
+                addTexturePixels(ref roughnessSmoothness, ref outputColors, outputChannel, inputChannel);
 			}
 
 			Texture2D newtex = new Texture2D(width, height);
@@ -822,16 +928,35 @@ public class SceneToGlTFWiz : MonoBehaviour
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
-			// Add sampler
-			GlTF_Sampler sampler;
-			var samplerName = GlTF_Sampler.GetNameFromObject(metallicRoughness);
-			if (!GlTF_Writer.samplerNames.Contains(samplerName))
-			{
-				sampler = new GlTF_Sampler(metallicRoughness);
-				sampler.name = samplerName;
-				GlTF_Writer.samplers.Add(sampler);
-				GlTF_Writer.samplerNames.Add(samplerName);
+            // TODO add one for occlusion???
+			if (metallic) {
+                Debug.Log("ADD METALIC SAMPLE");
+				// Add sampler
+				GlTF_Sampler sampler;
+				var samplerName = GlTF_Sampler.GetNameFromObject(metallic);
+				if (!GlTF_Writer.samplerNames.Contains(samplerName))
+				{
+					sampler = new GlTF_Sampler(metallic);
+					sampler.name = samplerName;
+					GlTF_Writer.samplers.Add(sampler);
+					GlTF_Writer.samplerNames.Add(samplerName);
+				} 
 			}
+
+            if (roughnessSmoothness)
+            {
+                Debug.Log("ADD ROUGHNESS_SMOOTHNESS SAMPLE");
+                // Add sampler
+                GlTF_Sampler sampler;
+                var samplerName = GlTF_Sampler.GetNameFromObject(roughnessSmoothness);
+                if (!GlTF_Writer.samplerNames.Contains(samplerName))
+                {
+                    sampler = new GlTF_Sampler(roughnessSmoothness);
+                    sampler.name = samplerName;
+                    GlTF_Writer.samplers.Add(sampler);
+                    GlTF_Writer.samplerNames.Add(samplerName);
+                }
+            }
 
 			GlTF_Writer.textures.Add(texture);
 			GlTF_Writer.textureNames.Add(texName);
@@ -886,6 +1011,12 @@ public class SceneToGlTFWiz : MonoBehaviour
 		return GlTF_Writer.textureNames.IndexOf(texName);
 	}
 
+	private void DisplayError(string msg) {
+		// Log the error and show a dialog.
+		Debug.LogError(msg);
+		EditorUtility.DisplayDialog("Error", msg, "Okay");
+	}
+
 	// Convert material from Unity to glTF PBR
 	private void unityToPBRMaterial(Material mat, ref GlTF_Material material)
 	{
@@ -894,10 +1025,15 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool hasPBRMap = false;
 		bool isMaterialRoughness = false;  // true if roughness, false if smoothness.
 
+		Debug.Log("unityToPBRMaterial " + mat.name);
+		Debug.Log("=========================");
+		// TODO look at diff of this one, did I make a logic error here?
 		if (!(mat.shader.name == "Standard" ||
 			mat.shader.name == "Standard (Roughness setup)"))
 		{
-			Debug.LogError("Material " + mat.shader + " is not fully supported");
+			// TODO display error dialog
+			DisplayError("Material '" + mat.shader + "' is not fully supported. " +
+				"The fully supported materials are: ['Standard', 'Standard (Roughness setup)']");
 			isMaterialPBR = false;
 		}
 		else
@@ -905,15 +1041,32 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Is metal workflow used
 			isMetal = mat.shader.name == "Standard" ||
 				mat.shader.name == "Standard (Roughness setup)";
-			if (mat.shader.name == "Standard (Roughness setup)") { // TODO set roughness
+			if (mat.shader.name == "Standard (Roughness setup)") {
 				isMaterialRoughness = true;
 			}
+	
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
 			// Is smoothness defined by diffuse texture or PBR texture' alpha?
-			if (mat.GetFloat("_SmoothnessTextureChannel") != 0)
-				Debug.Log("Smoothness uses diffuse's alpha channel. Unsupported for now");
+            Debug.Log("ajamato HasProperty _SmoothnessTextureChannel " + mat.HasProperty("_SmoothnessTextureChannel"));
+
+            if ( mat.HasProperty("_SmoothnessTextureChannel")) {
+				Debug.Log("ajamato _SmoothnessTextureChannel " + mat.GetFloat("_SmoothnessTextureChannel"));
+			}
+
+            if (mat.HasProperty("_SmoothnessTextureChannel") && mat.GetFloat("_SmoothnessTextureChannel") != 0)
+            {
+                Debug.Log("Smoothness uses diffuse's alpha channel. Unsupported for now");
+            }
+
+            // TODO maybe hasPBRMap is incomplete? Not working properly for roughness textures set?
+
+			//hasPBRMap = (!isMetal && mat.GetTexture("_SpecGlossMap") != null || isMetal && mat.GetTexture("_MetallicGlossMap") != null);
+			hasPBRMap = (mat.GetTexture("_SpecGlossMap") != null || mat.GetTexture("_MetallicGlossMap") != null || mat.GetTexture("_OcclusionMap") != null
+			    || (!isMaterialRoughness && mat.GetFloat("_SmoothnessTextureChannel") == SMOOTHNESS_SOURCE_ALBEDO_ALPHA)
+			);
+
 		}
 
 		//Check transparency
@@ -925,6 +1078,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			var textureValue = new GlTF_Material.DictValue();
 			textureValue.name = isMetal ? "baseColorTexture" : "diffuseTexture";
 
+			Debug.Log("ajamato get _MainTex ");
 			int diffuseTextureIndex = processTexture((Texture2D)mat.GetTexture("_MainTex"), hasTransparency ? IMAGETYPE.RGBA : IMAGETYPE.RGBA_OPAQUE);
 			textureValue.intValue.Add("index", diffuseTextureIndex);
 			textureValue.intValue.Add("texCoord", 0);
@@ -941,21 +1095,49 @@ public class SceneToGlTFWiz : MonoBehaviour
 			material.pbrValues.Add(colorValue);
 		}
 
+        Debug.Log("ajamato isMaterialPBR " + isMaterialPBR + " isMetal " +
+		          isMetal + " hasPBRMap " + hasPBRMap);
 		//Parse PBR textures
 		if (isMaterialPBR)
 		{
 			if (isMetal)
 			{
+                Texture2D roughnessSmoothnessTexture = null;
+
 				if (hasPBRMap) // No metallic factor if texture
-				{
+				{   // TODO, we are not hitting this branch in the correct cases
 					var textureValue = new GlTF_Material.DictValue();
 					textureValue.name = "metallicRoughnessTexture";
-					Texture2D metallicRoughnessTexture = (Texture2D)mat.GetTexture("_MetallicGlossMap");
+					// TODO get the metalic gloss map here???
+					Debug.Log("ajamato get _MetallicGlossMap");
+					Debug.LogWarning("ajamato get _MetallicGlossMap");
+					// TODO maybe if its roughness we need to invert it????
+
+                    // GET ROUGHNESS texture
+					Texture2D metallicTexture = (Texture2D)mat.GetTexture("_MetallicGlossMap");
+					if (!isMaterialRoughness) {
+						if (mat.GetFloat("_SmoothnessTextureChannel") == SMOOTHNESS_SOURCE_METALIC_ALPHA) {
+							roughnessSmoothnessTexture = (Texture2D)mat.GetTexture("_MetallicGlossMap");
+						}
+
+						if (mat.GetFloat("_SmoothnessTextureChannel") == SMOOTHNESS_SOURCE_ALBEDO_ALPHA) {
+							roughnessSmoothnessTexture = (Texture2D)mat.GetTexture("_MainTex");
+						}
+					} else {
+						roughnessSmoothnessTexture = (Texture2D)mat.GetTexture("_SpecGlossMap");
+					}
+
+					//Debug.Log("ajamato get _OcclusionMap");
 					Texture2D occlusion = (Texture2D)mat.GetTexture("_OcclusionMap");
-					int metalRoughTextureIndex = createOcclusionMetallicRoughnessTexture (ref occlusion, ref metallicRoughnessTexture);
+					//Debug.Log("ajamato createOcclusionMetallicRoughnessTexture isMaterialRoughness " + isMaterialRoughness);
+					int metalRoughTextureIndex = createOcclusionMetallicRoughnessTexture(
+						isMaterialRoughness, ref occlusion, ref metallicTexture,
+						ref roughnessSmoothnessTexture);
 					textureValue.intValue.Add("index", metalRoughTextureIndex);
 					textureValue.intValue.Add("texCoord", 0);
 					material.pbrValues.Add(textureValue);
+					// TODO for roughness its in the SpecGlossMap????
+					// WE need to figure out where to pull this from....
 				}
 
 				var metallicFactor = new GlTF_Material.FloatValue();
@@ -964,16 +1146,33 @@ public class SceneToGlTFWiz : MonoBehaviour
 				material.pbrValues.Add(metallicFactor);
 
 				//Roughness factor
+                // GET ROUGHNESS FACTOR
 				var roughnessFactor = new GlTF_Material.FloatValue();
 				roughnessFactor.name = "roughnessFactor";
 				// This block properly inverts or uses _Glossiness as is based on if it
 				// refers to a roughness or smoothness value.
-				if (hasPBRMap) {
-					roughnessFactor.value = 1.0f;
-				} else {
-					roughnessFactor.value = (isMaterialRoughness ?
-						mat.GetFloat("_Glossiness") : 1 - mat.GetFloat("_Glossiness"));
+                // If it i a roughness material and it has a roughness map
+                // Set the roughness factor to 1
+                // (You cannot trust the value stored in _Glossiness.
+                if (isMaterialRoughness && roughnessSmoothnessTexture != null) {
+                    roughnessFactor.value = 1.0f;
+                    Debug.Log("_Glossiness " + mat.GetFloat("_Glossiness"));
+                    Debug.Log("_GlossMapScale " + mat.GetFloat("_GlossMapScale"));
+                } else {
+                    if (roughnessSmoothnessTexture) {
+                        roughnessFactor.value = mat.GetFloat("_GlossMapScale");
+                    } else {
+                        roughnessFactor.value = mat.GetFloat("_Glossiness");
+                    }
+                    roughnessFactor.value = (isMaterialRoughness ?
+                        roughnessFactor.value : 1 - roughnessFactor.value);
+
+                    // TODO need to properlt use _Glossiness or _GlossMapScale
+                    // depending on whether or not there is a texture.
+                    Debug.Log("_Glossiness " + mat.GetFloat("_Glossiness"));
+                    Debug.Log("_GlossMapScale " + mat.GetFloat("_GlossMapScale"));
 				}
+
 
 				material.pbrValues.Add(roughnessFactor);
 			}
@@ -1005,6 +1204,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		//BumpMap
 		if (mat.HasProperty("_BumpMap") && mat.GetTexture("_BumpMap") != null)
 		{
+			Debug.Log("ajamato get _BumpMap");
 			Texture2D bumpTexture = mat.GetTexture("_BumpMap") as Texture2D;
 			// Check if it's a normal or a bump map
 			TextureImporter im = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bumpTexture)) as TextureImporter;
@@ -1012,10 +1212,14 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			if(isBumpMap)
 			{
+				Debug.Log("ajamato isBumpMap " + isBumpMap);
 				Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
+
+
 			}
 			else
 			{
+				Debug.Log("ajamato isBumpMap " + isBumpMap + ". its a normal map");
 				var textureValue = new GlTF_Material.DictValue();
 				textureValue.name = "normalTexture";
 
@@ -1030,6 +1234,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		//Emissive
 		if (mat.HasProperty("_EmissionMap") && mat.GetTexture("_EmissionMap") != null)
 		{
+			Debug.Log("ajamato get _EmissionMap");
 			Texture2D emissiveTexture = mat.GetTexture("_EmissionMap") as Texture2D;
 			var textureValue = new GlTF_Material.DictValue();
 			textureValue.name = "emissiveTexture";
