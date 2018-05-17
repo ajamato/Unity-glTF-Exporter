@@ -774,7 +774,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 				"\nroughnessSmoothness: " + roughnessSmoothness.width + "x" + roughnessSmoothness.height);
 		}
 
-		// TODO optomize later
+		// TODO fix later
 		// If they are all the same dimension sizes then pack
 		// them into one texture. Otherwise create separate textures.
 
@@ -826,7 +826,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Export image
 			GlTF_Image img = new GlTF_Image();
 			img.name = texName;
-			//img.uri =
 
 			// Let's consider that the three textures have the same resolution
 			Color[] outputColors = new Color[width * height];
@@ -838,7 +837,6 @@ public class SceneToGlTFWiz : MonoBehaviour
             {
                 addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
             }
-			// TODO I think we might need to invert the roughness sometimes???
 			// Add Metalicness to B channel
 			// Add Roughness to G channel, after inverting the values
 			if (metallic) {
@@ -878,7 +876,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
 
-            // TODO add one for occlusion???
 			if (metallic) {
 				// Add sampler
 				GlTF_Sampler sampler;
@@ -894,7 +891,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 
             if (roughnessSmoothness)
             {
-                Debug.Log("ADD ROUGHNESS_SMOOTHNESS SAMPLE");
                 // Add sampler
                 GlTF_Sampler sampler;
                 var samplerName = GlTF_Sampler.GetNameFromObject(roughnessSmoothness);
@@ -974,7 +970,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool hasPBRMap = false;
 		bool isMaterialRoughness = false;  // true if roughness, false if smoothness.
 
-		// TODO look at diff of this one, did I make a logic error here?
 		if (!(mat.shader.name == "Standard" ||
 			mat.shader.name == "Standard (Roughness setup)"))
 		{
@@ -993,12 +988,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 	
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
-
-			// Is smoothness defined by diffuse texture or PBR texture' alpha?
-            if (mat.HasProperty("_SmoothnessTextureChannel") && mat.GetFloat("_SmoothnessTextureChannel") != 0)
-            {
-                Debug.Log("Smoothness uses diffuse's alpha channel. Unsupported for now");
-            }
 
 			hasPBRMap = (mat.GetTexture("_SpecGlossMap") != null || mat.GetTexture("_MetallicGlossMap") != null || mat.GetTexture("_OcclusionMap") != null
 			    || (!isMaterialRoughness && mat.GetFloat("_SmoothnessTextureChannel") == SMOOTHNESS_SOURCE_ALBEDO_ALPHA)
@@ -1063,8 +1052,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 					textureValue.intValue.Add("index", metalRoughTextureIndex);
 					textureValue.intValue.Add("texCoord", 0);
 					material.pbrValues.Add(textureValue);
-					// TODO for roughness its in the SpecGlossMap????
-					// WE need to figure out where to pull this from....
 				}
 
 				var metallicFactor = new GlTF_Material.FloatValue();
@@ -1108,13 +1095,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 				var specularFactor = new GlTF_Material.ColorValue();
 				specularFactor.name = "specularFactor";
-				specularFactor.color = hasPBRMap ? Color.white : mat.GetColor("_SpecColor"); // gloss scale is not supported for now(property _GlossMapScale)
+				specularFactor.color = hasPBRMap ? Color.white : mat.GetColor("_SpecColor");
 				specularFactor.isRGB = true;
 				material.pbrValues.Add(specularFactor);
 
 				var glossinessFactor = new GlTF_Material.FloatValue();
 				glossinessFactor.name = "glossinessFactor";
-				glossinessFactor.value = hasPBRMap ? 1.0f : mat.GetFloat("_Glossiness"); // gloss scale is not supported for now(property _GlossMapScale)
+				glossinessFactor.value = hasPBRMap ? 1.0f : mat.GetFloat("_Glossiness");
 				material.pbrValues.Add(glossinessFactor);
 			}
 		}
@@ -1129,7 +1116,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			if (isBumpMap)
 			{
-				Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
+                DisplayError("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
 			}
 			else
 			{
@@ -1248,7 +1235,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		Color[] textureColors = new Color[inputTexture.height * inputTexture.width];
 		if(!getPixelsFromTexture(ref inputTexture, out textureColors))
 		{
-			Debug.Log("Failed to convert texture " + inputTexture.name + " (unsupported type or format)");
+            DisplayError("Failed to convert texture " + inputTexture.name + " (unsupported type or format)");
 			return "";
 		}
 		Color[] newTextureColors = new Color[inputTexture.height * inputTexture.width];
