@@ -766,12 +766,15 @@ public class SceneToGlTFWiz : MonoBehaviour
 		int height = -1;
 		string assetPath = "";
 
+        bool createSeparateTextures = false;
 		if (occlusion.width != metallic.width || metallic.width != roughnessSmoothness.width ||
 			occlusion.height != metallic.height || metallic.height != roughnessSmoothness.height) {
-			DisplayError("Texture dimensions do not match. This is not properly supported." +
+			/*
+            DisplayError("Texture dimensions do not match. This is not properly supported." +
 			    "\nocclusion: " + occlusion.width + "x" + occlusion.height +
 				"\nmetallic: " + metallic.width + "x" + metallic.height +
-				"\nroughnessSmoothness: " + roughnessSmoothness.width + "x" + roughnessSmoothness.height);
+				"\nroughnessSmoothness: " + roughnessSmoothness.width + "x" + roughnessSmoothness.height);*/
+            createSeparateTextures = true;
 		}
 
 		// TODO fix later
@@ -781,7 +784,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 		//Texture2D forNaming = null
 		if(occlusion)
 		{
-			texName = texName + GlTF_Texture.GetNameFromObject(occlusion) + "METALIC";
+            string occlusionTexName = GlTF_Texture.GetNameFromObject(occlusion) + "_OCCLUSION";
+            texName = texName + occlusionTexName;
 			assetPath = AssetDatabase.GetAssetPath(occlusion);
 			width = occlusion.width;
 			height = occlusion.height;
@@ -793,7 +797,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if (metallic)
 		{
-			texName = texName + GlTF_Texture.GetNameFromObject(metallic);
+            string metallicTexName = GlTF_Texture.GetNameFromObject(metallic) + "_METALIC";
+            texName = texName + metallicTexName;
 			assetPath = AssetDatabase.GetAssetPath(metallic);
 			width = metallic.width;
 			height = metallic.height;
@@ -805,12 +810,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if (roughnessSmoothness)
 		{
-			texName = texName + GlTF_Texture.GetNameFromObject(roughnessSmoothness);
+            string roughnessTextName = GlTF_Texture.GetNameFromObject(roughnessSmoothness) + "_ROUGHNESS";
+            texName = texName + roughnessTextName;
 			assetPath = AssetDatabase.GetAssetPath(roughnessSmoothness);
 			width = roughnessSmoothness.width;
 			height = roughnessSmoothness.height;
-			//forNaming = roughnessSmoothness;
-
 		}
 		else
 		{
@@ -832,15 +836,41 @@ public class SceneToGlTFWiz : MonoBehaviour
 			for (int i = 0; i < outputColors.Length; ++i)
 				outputColors[i] = new Color(1.0f, 1.0f, 1.0f);
 
-            // Add occlusion to R channel
-            if (occlusion)
-            {
-                addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
-            }
+      Color[] occlusionOutputColors = outputColors;
+      Color[] metallicOutputColors = outputColors;
+      Color[] roughnessSmoothnessOutputColors = outputColors;
+
+      if (createSeparateTextures) {
+          // TODO check if each exists
+          occlusionOutputColors = new Color[
+              occlusion.width * occlusion.height];
+          for (int i = 0; i < occlusionOutputColors.Length; ++i)
+              occlusionOutputColors[i] = new Color(1.0f, 1.0f, 1.0f);
+
+          metallicOutputColors = new Color[
+              metallic.width * metallic.height];
+          for (int i = 0; i < metallicOutputColors.Length; ++i)
+              metallicOutputColors[i] = new Color(1.0f, 1.0f, 1.0f);
+
+          roughnessSmoothnessOutputColors = 
+              new Color[roughnessSmoothness.width * roughnessSmoothness.height];
+          for (int i = 0; i < roughnessSmoothnessOutputColors.Length; ++i)
+              roughnessSmoothnessOutputColors[i] = new Color(1.0f, 1.0f, 1.0f);
+      }
+
+      // TODO add a code block here, to create a texture for each
+      // and in the correct mode create one for each, and write
+      // to the correct outputColors for each.
+
+      // Add occlusion to R channel
+      if (occlusion)
+      {
+          addTexturePixels(ref occlusion, ref occlusionOutputColors, IMAGETYPE.R);
+      }
 			// Add Metalicness to B channel
 			// Add Roughness to G channel, after inverting the values
 			if (metallic) {
-				addTexturePixels(ref metallic, ref outputColors, IMAGETYPE.B);
+                addTexturePixels(ref metallic, ref metallicOutputColors, IMAGETYPE.B);
 			}
 
 			if (roughnessSmoothness) {
@@ -849,9 +879,10 @@ public class SceneToGlTFWiz : MonoBehaviour
                 IMAGETYPE inputChannel = isMaterialRoughness ? IMAGETYPE.GRAYSCALE : IMAGETYPE.A;
                 // Output to roughness, so invert if the material stored smoothness.
 				IMAGETYPE outputChannel = isMaterialRoughness ? IMAGETYPE.G : IMAGETYPE.G_INVERT;
-                addTexturePixels(ref roughnessSmoothness, ref outputColors, outputChannel, inputChannel);
+                addTexturePixels(ref roughnessSmoothness, ref roughnessSmoothnessOutputColors, outputChannel, inputChannel);
 			}
 
+            // TODO make a tex for each here.
 			Texture2D newtex = new Texture2D(width, height);
 			newtex.SetPixels(outputColors);
 			newtex.Apply();
@@ -989,9 +1020,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
-			hasPBRMap = (mat.GetTexture("_SpecGlossMap") != null || mat.GetTexture("_MetallicGlossMap") != null || mat.GetTexture("_OcclusionMap") != null
-			    || (!isMaterialRoughness && mat.GetFloat("_SmoothnessTextureChannel") == SMOOTHNESS_SOURCE_ALBEDO_ALPHA)
-			);
+      hasPBRMap = ((mat.HasProperty("_SpecGlossMap") &&
+                    mat.GetTexture("_SpecGlossMap") != null) ||
+                   mat.GetTexture("_MetallicGlossMap") != null ||
+                   mat.GetTexture("_OcclusionMap") != null
+			    || (!isMaterialRoughness &&
+              mat.GetFloat("_SmoothnessTextureChannel") ==
+              SMOOTHNESS_SOURCE_ALBEDO_ALPHA));
 
 		}
 
