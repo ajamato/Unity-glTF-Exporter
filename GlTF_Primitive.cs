@@ -12,7 +12,9 @@ public class GlTF_Primitive : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o, int index)
 	{
-		return "primitive_" + index + "_" + GlTF_Writer.GetNameFromObject(o, true);
+    // Don't use the object ID, so that we can deterministically produce
+    // the same filenames when exporting the same asset again.
+		return "primitive_" + index + "_" + GlTF_Writer.GetNameFromObject(o, false);
 	}
 
 	public void Populate (Mesh m)

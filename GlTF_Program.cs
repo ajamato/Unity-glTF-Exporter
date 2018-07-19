@@ -10,7 +10,9 @@ public class GlTF_Program : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o)
 	{
-		return "program_" + GlTF_Writer.GetNameFromObject(o);
+    // Don't use the object ID, so that we can deterministically produce
+    // the same filenames when exporting the same asset again.
+		return "program_" + GlTF_Writer.GetNameFromObject(o, false);
 	}
 
 	public override void Write()

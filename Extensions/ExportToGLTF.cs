@@ -18,9 +18,19 @@ public class ExportToGLTF : EditorWindow
 	}
 
 	void Awake() {
-		exporterGo = new GameObject("Exporter");
-		exporter = exporterGo.AddComponent<SceneToGlTFWiz>();
+    Initialize();
 	}
+
+  void Initialize() {
+    exporterGo = GameObject.Find("Exporter");
+    if (exporterGo == null)
+    {
+      exporterGo = new GameObject("Exporter");
+      exporter = exporterGo.AddComponent<SceneToGlTFWiz>();
+    }
+    exporter = exporterGo.GetComponent<SceneToGlTFWiz>();
+   
+  }
 
 	void OnGUI()
 	{
@@ -35,6 +45,7 @@ public class ExportToGLTF : EditorWindow
 
 		EditorGUI.BeginDisabledGroup(path == String.Empty || path.EndsWith(".zip"));
 		if (GUILayout.Button("Convert", GUILayout.Width(150), GUILayout.Height(40))) {
+      Initialize();
 			exporter.ExportCoroutine(path, null, true, true, false, true);
 		}
 		EditorGUI.EndDisabledGroup();

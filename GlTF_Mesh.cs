@@ -10,7 +10,9 @@ public class GlTF_Mesh : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o)
 	{
-		return "mesh_" + GlTF_Writer.GetNameFromObject(o, true);
+    // Don't use the object ID, so that we can deterministically produce
+    // the same filenames when exporting the same asset again.
+		return "mesh_" + GlTF_Writer.GetNameFromObject(o, false);
 	}
 
 	public void Populate (Mesh m)
