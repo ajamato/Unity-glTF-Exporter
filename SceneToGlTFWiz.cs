@@ -115,9 +115,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 		}
 	}
 
-	public void ExportCoroutine(
-      string path, Preset presetAsset, bool buildZip, bool exportPBRMaterials,
-      bool exportAnimation = true, bool doConvertImages = true)
+	public void ExportCoroutine(string path, Preset presetAsset, bool buildZip,
+		bool exportPBRMaterials, bool exportAnimation = true,
+		bool doConvertImages = true)
 	{
 		StartCoroutine(Export(path, presetAsset, buildZip, exportPBRMaterials, exportAnimation, doConvertImages));
 	}
@@ -554,7 +554,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 			{
 				zip.AddFile(originFilePath, GlTF_Writer.exportedFiles[originFilePath]);
 			}
+
 			zip.Save(savedPath + "/" + zipName);
+
 			// Remove all files
 			foreach (string pa in GlTF_Writer.exportedFiles.Keys)
 			{
@@ -692,61 +694,59 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if(height * width != colors.Length)
 		{
-            Debug.LogWarning("Issue with texture dimensions");
+			Debug.LogWarning("Issue with texture dimensions");
 			return;
 		}
 
-        if(inputChannel != IMAGETYPE.R && inputChannel != IMAGETYPE.A &&
-           inputChannel != IMAGETYPE.GRAYSCALE)
+		if (inputChannel != IMAGETYPE.R && inputChannel != IMAGETYPE.A && inputChannel != IMAGETYPE.GRAYSCALE)
 		{
-            Debug.LogWarning("Incorrect input channel (only 'R' and 'A' or GRAYSCALE supported)");
+			Debug.LogWarning("Incorrect input channel (only 'R' and 'A' or GRAYSCALE supported)");
 		}
 
 		for (int i = 0; i < height; ++i)
 		{
-            for (int j = 0; j < width; ++j)
-            {
-                int index = i * width + j;
-                int newIndex = (height - i - 1) * width + j;
-                Color c = outputChannel == IMAGETYPE.RGB ? inputColors[newIndex] : colors[index];
-                float inputValue = 0;
-                if (inputChannel == IMAGETYPE.R)
-                {
-                    inputValue = inputColors[newIndex].r;
-                }
-                else if (inputChannel == IMAGETYPE.A)
-                {
-                    inputValue = inputColors[newIndex].a;
-                }
-                else if (inputChannel == IMAGETYPE.GRAYSCALE)
-                {
-                    inputValue = inputColors[newIndex].grayscale;
-                }
+			for (int j = 0; j < width; ++j)
+			{
+				int index = i * width + j;
+				int newIndex = (height - i - 1) * width + j;
+				Color c = outputChannel == IMAGETYPE.RGB ? inputColors[newIndex] : colors[index];
+				float inputValue = 0;
+				if (inputChannel == IMAGETYPE.R)
+				{
+					inputValue = inputColors[newIndex].r;
+				}
+				else if (inputChannel == IMAGETYPE.A)
+				{
+					inputValue = inputColors[newIndex].a;
+				}
+				else if (inputChannel == IMAGETYPE.GRAYSCALE)
+				{
+					inputValue = inputColors[newIndex].grayscale;
+				}
 
-                if (outputChannel == IMAGETYPE.R)
-                {
-                    c.r = inputValue;
-                }
-                else if (outputChannel == IMAGETYPE.G)
-                {
-                    c.g = inputValue;
-                }
-                else if (outputChannel == IMAGETYPE.B)
-                {
-                    c.b = inputValue;
-                }
-                else if (outputChannel == IMAGETYPE.G_INVERT)
-                {
-                    c.g = 1.0f - inputValue;
-                }
+				if (outputChannel == IMAGETYPE.R)
+				{
+					c.r = inputValue;
+				}
+				else if (outputChannel == IMAGETYPE.G)
+				{
+					c.g = inputValue;
+				}
+				else if (outputChannel == IMAGETYPE.B)
+				{
+					c.b = inputValue;
+				}
+				else if (outputChannel == IMAGETYPE.G_INVERT)
+				{
+					c.g = 1.0f - inputValue;
+				}
 
 				colors[index] = c;
 			}
 		}
-
 	}
 
-  private void CreateAndRegisterSubDirs(
+	private void CreateAndRegisterSubDirs(
 		string baseExportDirectory, string pathInArchive) {
 		// Create every subdir and keep track of it
 		// So we can delete them at cleanup time.
@@ -769,20 +769,21 @@ public class SceneToGlTFWiz : MonoBehaviour
 		string assetPath = "";
 
 		if (occlusion.width != metallic.width ||
-        metallic.width != roughnessSmoothness.width ||
-			  occlusion.height != metallic.height ||
-        metallic.height != roughnessSmoothness.height) {
-      DisplayError("Unable to pack textures of different sizes together: " +
-                   "occlusion " + occlusion.width + "x" + occlusion.height +
-                   "metallic " + metallic.width + "x" + metallic.height +
-                   "roughnessSmoothness " + roughnessSmoothness.width + "x" +
-                   roughnessSmoothness.height);
+			metallic.width != roughnessSmoothness.width ||
+			occlusion.height != metallic.height ||
+			metallic.height != roughnessSmoothness.height)
+		{
+			DisplayError("Unable to pack textures of different sizes together: " +
+				"occlusion " + occlusion.width + "x" + occlusion.height +
+				"metallic " + metallic.width + "x" + metallic.height +
+				"roughnessSmoothness " + roughnessSmoothness.width + "x" +
+				roughnessSmoothness.height);
 		}
 
 		if(occlusion)
 		{
-      string occlusionTexName = GlTF_Texture.GetNameFromObject(occlusion) + "_OCCLUSION";
-      texName = texName + occlusionTexName;
+			string occlusionTexName = GlTF_Texture.GetNameFromObject(occlusion) + "_OCCLUSION";
+			texName = texName + occlusionTexName;
 			assetPath = AssetDatabase.GetAssetPath(occlusion);
 			width = occlusion.width;
 			height = occlusion.height;
@@ -794,8 +795,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if (metallic)
 		{
-      string metallicTexName = GlTF_Texture.GetNameFromObject(metallic) + "_METALIC";
-      texName = texName + metallicTexName;
+			string metallicTexName = GlTF_Texture.GetNameFromObject(metallic) + "_METALIC";
+			texName = texName + metallicTexName;
 			assetPath = AssetDatabase.GetAssetPath(metallic);
 			width = metallic.width;
 			height = metallic.height;
@@ -807,8 +808,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		if (roughnessSmoothness)
 		{
-      string roughnessTextName = GlTF_Texture.GetNameFromObject(roughnessSmoothness) + "_ROUGHNESS";
-      texName = texName + roughnessTextName;
+			string roughnessTextName = GlTF_Texture.GetNameFromObject(roughnessSmoothness) + "_ROUGHNESS";
+			texName = texName + roughnessTextName;
 			assetPath = AssetDatabase.GetAssetPath(roughnessSmoothness);
 			width = roughnessSmoothness.width;
 			height = roughnessSmoothness.height;
@@ -833,24 +834,24 @@ public class SceneToGlTFWiz : MonoBehaviour
 			for (int i = 0; i < outputColors.Length; ++i)
 				outputColors[i] = new Color(1.0f, 1.0f, 1.0f);
 
-      // Add occlusion to R channel
-      if (occlusion)
-      {
-        addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
-      }
+			// Add occlusion to R channel
+			if (occlusion)
+			{
+				addTexturePixels(ref occlusion, ref outputColors, IMAGETYPE.R);
+			}
 			// Add Metalicness to B channel
 			// Add Roughness to G channel, after inverting the values
 			if (metallic) {
-        addTexturePixels(ref metallic, ref outputColors, IMAGETYPE.B);
+				addTexturePixels(ref metallic, ref outputColors, IMAGETYPE.B);
 			}
 
 			if (roughnessSmoothness) {
-        // If Standard (Roughness Setup) then it comes from grayscale.
-        // If Standard then it comes from Albedo or Metalic Alpha channels.
-        IMAGETYPE inputChannel = isMaterialRoughness ? IMAGETYPE.GRAYSCALE : IMAGETYPE.A;
-        // Output to roughness, so invert if the material stored smoothness.
+				// If Standard (Roughness Setup) then it comes from grayscale.
+				// If Standard then it comes from Albedo or Metalic Alpha channels.
+				IMAGETYPE inputChannel = isMaterialRoughness ? IMAGETYPE.GRAYSCALE : IMAGETYPE.A;
+				// Output to roughness, so invert if the material stored smoothness.
 				IMAGETYPE outputChannel = isMaterialRoughness ? IMAGETYPE.G : IMAGETYPE.G_INVERT;
-        addTexturePixels(ref roughnessSmoothness, ref outputColors, outputChannel, inputChannel);
+				addTexturePixels(ref roughnessSmoothness, ref outputColors, outputChannel, inputChannel);
 			}
 
 			Texture2D newtex = new Texture2D(width, height);
@@ -863,7 +864,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			CreateAndRegisterSubDirs(savedPath, pathInArchive);
 
 			string outputFilename = Path.GetFileNameWithoutExtension(assetPath) +
-          "_converted_metalRoughness.png";
+				"_converted_metalRoughness.png";
 			string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
 			File.WriteAllBytes(exportPath, newtex.EncodeToPNG());
 
@@ -891,33 +892,32 @@ public class SceneToGlTFWiz : MonoBehaviour
 				} 
 			}
 
-      if (roughnessSmoothness)
-      {
-        // Add sampler
-        GlTF_Sampler sampler;
-        var samplerName = GlTF_Sampler.GetNameFromObject(roughnessSmoothness);
-        if (!GlTF_Writer.samplerNames.Contains(samplerName))
-        {
-          sampler = new GlTF_Sampler(roughnessSmoothness);
-          sampler.name = samplerName;
-          GlTF_Writer.samplers.Add(sampler);
-          GlTF_Writer.samplerNames.Add(samplerName);
-        }
-      }
+			if (roughnessSmoothness)
+			{
+				// Add sampler
+				GlTF_Sampler sampler;
+				var samplerName = GlTF_Sampler.GetNameFromObject(roughnessSmoothness);
+				if (!GlTF_Writer.samplerNames.Contains(samplerName))
+				{
+					sampler = new GlTF_Sampler(roughnessSmoothness);
+					sampler.name = samplerName;
+					GlTF_Writer.samplers.Add(sampler);
+					GlTF_Writer.samplerNames.Add(samplerName);
+				}
+			}
 
 			GlTF_Writer.textures.Add(texture);
 			GlTF_Writer.textureNames.Add(texName);
 		}
 
 		return GlTF_Writer.textureNames.IndexOf(texName);
-
 	}
 
 	// Get or create texture object, image and sampler
 	private int processTexture(Texture2D t, IMAGETYPE format)
 	{
-    // Use the format in the texName to allow creating
-    // the same image for both opaque and transparent modes
+		// Use the format in the texName to allow creating
+		// the same image for both opaque and transparent modes
 		var texName = GlTF_Texture.GetNameFromObject(t, format);
 		if (AssetDatabase.GetAssetPath(t).Length == 0)
 		{
@@ -936,8 +936,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Export image
 			GlTF_Image img = new GlTF_Image();
 			img.name = GlTF_Image.GetNameFromObject(t);
-      // Use the text name in the exported image path
-      img.uri = convertTexture(ref t, texName, assetPath, savedPath, format);
+			// Use the text name in the exported image path
+			img.uri = convertTexture(ref t, texName, assetPath, savedPath, format);
 
 			texture.source = GlTF_Writer.imageNames.Count;
 			GlTF_Writer.imageNames.Add(img.name);
@@ -956,7 +956,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			GlTF_Writer.textures.Add(texture);
 			GlTF_Writer.textureNames.Add(texName);
-    }
+		}
 
 		return GlTF_Writer.textureNames.IndexOf(texName);
 	}
@@ -994,14 +994,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 			GlTF_Writer.hasSpecularMaterials = GlTF_Writer.hasSpecularMaterials || !isMetal;
 			material.isMetal = isMetal;
 
-      hasPBRMap = ((mat.HasProperty("_SpecGlossMap") &&
-                    mat.GetTexture("_SpecGlossMap") != null) ||
-                   mat.GetTexture("_MetallicGlossMap") != null ||
-                   mat.GetTexture("_OcclusionMap") != null
-			    || (!isMaterialRoughness &&
-              mat.GetFloat("_SmoothnessTextureChannel") ==
-              SMOOTHNESS_SOURCE_ALBEDO_ALPHA));
-
+			hasPBRMap = ((mat.HasProperty("_SpecGlossMap") &&
+				mat.GetTexture("_SpecGlossMap") != null) ||
+				mat.GetTexture("_MetallicGlossMap") != null ||
+				mat.GetTexture("_OcclusionMap") != null ||
+				(!isMaterialRoughness &&
+					mat.GetFloat("_SmoothnessTextureChannel") ==
+					SMOOTHNESS_SOURCE_ALBEDO_ALPHA));
 		}
 
 		//Check transparency
@@ -1034,7 +1033,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		{
 			if (isMetal)
 			{
-        Texture2D roughnessSmoothnessTexture = null;
+				Texture2D roughnessSmoothnessTexture = null;
 
 				if (hasPBRMap) // No metallic factor if texture
 				{
@@ -1068,26 +1067,25 @@ public class SceneToGlTFWiz : MonoBehaviour
 				metallicFactor.value = hasPBRMap ? 1.0f : mat.GetFloat("_Metallic");
 				material.pbrValues.Add(metallicFactor);
 
-				//Roughness factor
-                // GET ROUGHNESS FACTOR
+				// Get Roughness factor
 				var roughnessFactor = new GlTF_Material.FloatValue();
 				roughnessFactor.name = "roughnessFactor";
 				// This block properly inverts or uses _Glossiness as is based on if it
 				// refers to a roughness or smoothness value.
-        // If it i a roughness material and it has a roughness map
-        // Set the roughness factor to 1
-        // (You cannot trust the value stored in _Glossiness.
-        if (isMaterialRoughness && roughnessSmoothnessTexture != null) {
-            roughnessFactor.value = 1.0f;
-        } else {
-            if (roughnessSmoothnessTexture) {
-                roughnessFactor.value = mat.GetFloat("_GlossMapScale");
-            } else {
-                roughnessFactor.value = mat.GetFloat("_Glossiness");
-            }
-            roughnessFactor.value = (isMaterialRoughness ?
-                roughnessFactor.value : 1 - roughnessFactor.value);
-        }
+				// If it i a roughness material and it has a roughness map
+				// Set the roughness factor to 1
+				// (You cannot trust the value stored in _Glossiness.
+				if (isMaterialRoughness && roughnessSmoothnessTexture != null) {
+					roughnessFactor.value = 1.0f;
+				} else {
+					if (roughnessSmoothnessTexture) {
+						roughnessFactor.value = mat.GetFloat("_GlossMapScale");
+					} else {
+						roughnessFactor.value = mat.GetFloat("_Glossiness");
+					}
+					roughnessFactor.value = (isMaterialRoughness ?
+						roughnessFactor.value : 1 - roughnessFactor.value);
+				}
 				material.pbrValues.Add(roughnessFactor);
 			}
 			else
@@ -1125,8 +1123,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			if (isBumpMap)
 			{
-        DisplayError("Unsupported texture " + bumpTexture +
-                     " (normal maps generated from grayscale are not supported)");
+				DisplayError("Unsupported texture " + bumpTexture +
+								" (normal maps generated from grayscale are not supported)");
 			}
 			else
 			{
@@ -1246,8 +1244,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 		Color[] textureColors = new Color[inputTexture.height * inputTexture.width];
 		if (!getPixelsFromTexture(ref inputTexture, out textureColors))
 		{
-      DisplayError("Failed to convert texture " + inputTexture.name +
-                   " (unsupported type or format)");
+			DisplayError("Failed to convert texture " + inputTexture.name +
+				" (unsupported type or format)");
 			return "";
 		}
 		Color[] newTextureColors = new Color[inputTexture.height * inputTexture.width];
@@ -1256,10 +1254,10 @@ public class SceneToGlTFWiz : MonoBehaviour
 			for (int j = 0; j < width; ++j)
 			{
 				newTextureColors[i * width + j] = textureColors[(height - i - 1) * width + j];
-        if (format == IMAGETYPE.RGBA_OPAQUE)
-        {
-          newTextureColors[i * width + j].a = 1.0f;
-        }
+				if (format == IMAGETYPE.RGBA_OPAQUE)
+				{
+					newTextureColors[i * width + j].a = 1.0f;
+				}
 			}
 		}
 
@@ -1273,8 +1271,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		CreateAndRegisterSubDirs(exportDirectory, pathInArchive);
 
-    string outputFilename = GlTF_Writer.cleanNonAlphanumeric(
-      texName) + ".png";
+		string outputFilename = GlTF_Writer.cleanNonAlphanumeric(texName) + ".png";
 		string exportPath = exportDir + "/" + outputFilename;  // relative path inside the .zip
 		string pathInGltfFile = pathInArchive + "/" + outputFilename;
 
