@@ -50,8 +50,8 @@ public class GlTF_Technique : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o)
 	{
-    // Don't use the object ID, so that we can deterministically produce
-    // the same filenames when exporting the same asset again.
+		// Don't use the object ID, so that we can deterministically produce
+		// the same filenames when exporting the same asset again.
 		return "technique_" + GlTF_Writer.GetNameFromObject(o, false);
 	}
 

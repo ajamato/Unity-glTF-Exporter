@@ -29,7 +29,6 @@ public class ExportToGLTF : EditorWindow
       exporter = exporterGo.AddComponent<SceneToGlTFWiz>();
     }
     exporter = exporterGo.GetComponent<SceneToGlTFWiz>();
-   
   }
 
   void OnGUI()
@@ -53,11 +52,11 @@ public class ExportToGLTF : EditorWindow
   }
 
   void OnDestroy() {
-      if (exporterGo)
-      {
-        DestroyImmediate(exporterGo);
-        exporter = null;
-      }
+    if (exporterGo)
+    {
+      DestroyImmediate(exporterGo);
+      exporter = null;
+    }
   }
 }
 

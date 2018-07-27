@@ -13,8 +13,8 @@ public class GlTF_Shader : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o, Type type)
 	{
-    // Don't use the object ID, so that we can deterministically produce
-    // the same filenames when exporting the same asset again.
+		// Don't use the object ID, so that we can deterministically produce
+		// the same filenames when exporting the same asset again.
 		var name = GlTF_Writer.GetNameFromObject(o, false);
 		var typeName = type == Type.Vertex ? "vertex" : "fragment";
 		return typeName + "_" + name;

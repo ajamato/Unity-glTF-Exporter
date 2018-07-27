@@ -17,23 +17,23 @@ public class GlTF_Texture : GlTF_Writer {
 	public int source;
 	public bool flipy = true;
 
-  // Create differnet names based on the format
-  // Opaque and Transparent textures are exported differently.
+	// Create different names based on the format
+	// Opaque and Transparent textures are exported differently.
 	public static string GetNameFromObject(Object o, IMAGETYPE format)
 	{
-    string transparencyStyle = (
-        format == IMAGETYPE.RGBA_OPAQUE) ? "OPAQUE" : "TRANSPARENT";
+		string transparencyStyle = (
+			format == IMAGETYPE.RGBA_OPAQUE) ? "OPAQUE" : "TRANSPARENT";
 
-    // Don't use the object ID, so that we can deterministically produce
-    // the same filenames when exporting the same asset again.
-    return "texture_" + transparencyStyle + "_" +
-        GlTF_Writer.GetNameFromObject(o, false);
-  }
+		// Don't use the object ID, so that we can deterministically produce
+		// the same filenames when exporting the same asset again.
+		return "texture_" + transparencyStyle + "_" +
+			GlTF_Writer.GetNameFromObject(o, false);
+	}
 
-  public static string GetNameFromObject(Object o)
-  {
-    return GlTF_Texture.GetNameFromObject(o, IMAGETYPE.RGBA);
-  }
+	public static string GetNameFromObject(Object o)
+	{
+		return GlTF_Texture.GetNameFromObject(o, IMAGETYPE.RGBA);
+	}
 
 	public override void Write()
 	{
