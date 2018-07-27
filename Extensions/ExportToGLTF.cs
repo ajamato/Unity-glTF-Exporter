@@ -5,21 +5,21 @@ using UnityEditor;
 
 public class ExportToGLTF : EditorWindow
 {
-	GameObject exporterGo;
-	SceneToGlTFWiz exporter;
-	string path = "";
+  GameObject exporterGo;
+  SceneToGlTFWiz exporter;
+  string path = "";
 
-	[MenuItem("Tools/Export Selected to GLTF")]
-	static void Export()
-	{
-		ExportToGLTF window = (ExportToGLTF)EditorWindow.GetWindow(typeof(ExportToGLTF));
-		window.titleContent.text = "Export To GLTF";
-		window.Show();
-	}
+  [MenuItem("Tools/Export Selected to GLTF")]
+  static void Export()
+  {
+    ExportToGLTF window = (ExportToGLTF)EditorWindow.GetWindow(typeof(ExportToGLTF));
+    window.titleContent.text = "Export To GLTF";
+    window.Show();
+  }
 
-	void Awake() {
+  void Awake() {
     Initialize();
-	}
+  }
 
   void Initialize() {
     exporterGo = GameObject.Find("Exporter");
@@ -32,34 +32,33 @@ public class ExportToGLTF : EditorWindow
    
   }
 
-	void OnGUI()
-	{
-		path = EditorGUILayout.TextField("Output File", path);
+  void OnGUI()
+  {
+    path = EditorGUILayout.TextField("Output File", path);
 
-		GUILayout.BeginHorizontal();
-		if (GUILayout.Button("Select Output File", GUILayout.Width(150), GUILayout.Height(40))) {
-			// Hack to deal with the fact that its implemented
-			// in a Coroutine.
-			path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "gltf");
-		}
+    GUILayout.BeginHorizontal();
+    if (GUILayout.Button("Select Output File", GUILayout.Width(150), GUILayout.Height(40))) {
+      // Hack to deal with the fact that its implemented
+      // in a Coroutine.
+      path = EditorUtility.SaveFilePanel("glTF Export Filename", "", "", "gltf");
+    }
 
-		EditorGUI.BeginDisabledGroup(path == String.Empty || path.EndsWith(".zip"));
-		if (GUILayout.Button("Convert", GUILayout.Width(150), GUILayout.Height(40))) {
+    EditorGUI.BeginDisabledGroup(path == String.Empty || path.EndsWith(".zip"));
+    if (GUILayout.Button("Convert", GUILayout.Width(150), GUILayout.Height(40))) {
       Initialize();
-			exporter.ExportCoroutine(path, null, true, true, false, true);
-		}
-		EditorGUI.EndDisabledGroup();
-		GUILayout.EndHorizontal();
-	}
+      exporter.ExportCoroutine(path, null, true, true, false, true);
+    }
+    EditorGUI.EndDisabledGroup();
+    GUILayout.EndHorizontal();
+  }
 
-	void OnDestroy()
-	  {
-		  if (exporterGo)
-		  {
-			  DestroyImmediate(exporterGo);
-			  exporter = null;
-		  }
-	}
+  void OnDestroy() {
+      if (exporterGo)
+      {
+        DestroyImmediate(exporterGo);
+        exporter = null;
+      }
+  }
 }
 
 #endif
