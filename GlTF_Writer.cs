@@ -56,17 +56,19 @@ public class GlTF_Writer {
 
 	// Keys are original file path, values correspond to the directory in the output zip file
 	public static Dictionary<string, string> exportedFiles = new Dictionary<string, string>();
+	public static HashSet<string> createdDirectories = new HashSet<string>();
+
 	// Exporter specifics
 	public static bool bakeAnimation;
 	public static bool exportPBRMaterials;
 	public static bool hasSpecularMaterials = false;
 	public static bool convertRightHanded = true;
 	public static string exporterVersion = "2.2.1";
-	public static Regex rgx = new Regex("[^a-zA-Z0-9 -_.]");
+	public static Regex rgx = new Regex("[^a-zA-Z0-9-_.]");
 	
 	static public string cleanNonAlphanumeric(string s)
 	{
-		return rgx.Replace(s, "");
+		return rgx.Replace(s, "_");
 	}
 	static public string GetNameFromObject(Object o, bool useId = false)
 	{
